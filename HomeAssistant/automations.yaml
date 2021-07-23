@@ -1,0 +1,117 @@
+# ===============================
+# YouTube Notification
+# ===============================
+# -----------------------------
+# Latest Video New View
+# -----------------------------
+- alias: YouTube New View
+  id: e22de214-8a8e-413b-b6a9-47b1b22a691b
+  trigger:
+    platform: state
+    entity_id: sensor.youtube_last_count
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: "{{ (trigger.to_state.state | int) > (states('input_number.youtube_last_count_max') | int) }}"
+      # Optional input_boolean to disable notification
+      - condition: state
+        entity_id: input_boolean.matrix_youtube_alerts
+        state: "on"
+  action:
+    # Various example actions (modify for your notification preferences)
+    # Send notification to Home Assistant
+    - service: persistent_notification.create
+      data:
+        title: "YouTube Update - Latest Video"
+        message: "Latest view count is now {{ states('sensor.youtube_last_count') }}"
+    # Turn on RGB bulb and set to green
+    - service: light.turn_on
+      target:
+        entity_id: light.my_youtube_lamp
+      data:
+        rgb_color: [0,255,0]
+    # Send push notification to phone
+    - service: notify.mobile_app_my_phone
+      data:
+        message: "New YouTube view"
+    # Set threshold for next notification
+    # Modify "value" statement to set this threshold
+    - service: input_number.set_value
+      target:
+        entity_id: input_number.youtube_last_count_max
+      data:
+        value: "{{ ((trigger.to_state.state) | int) }}"  #will notify for each new view
+        #if you wish to add a threshold add the threshold value - 1 to the value statement
+        #Example:  to only be notified every 1,000 new views:
+        # value: "{{ ((trigger.to_state.state) | int) + 999 }}"
+# -------------------------------
+#  New Total Views
+# -------------------------------
+- alias: YouTube Total View Update
+  id: 848eaf4c-b9e5-4b52-9397-20c14b6bd58f
+  trigger:
+    platform: state
+    entity_id: sensor.youtube_total_views
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: "{{ (trigger.to_state.state | int) > (states('input_number.youtube_total_views_max') | int) }}"
+      # Optional input_boolean to disable notification
+      - condition: state
+        entity_id: input_boolean.matrix_youtube_alerts
+        state: "on"
+  action:
+    - service: persistent_notification.create
+      data:
+        title: "YouTube Update - Total View Count"
+        message: "Total view count is now {{ states('sensor.youtube_total_views') }}"
+
+    # Add other desired notification actions (see above for examples)
+
+    # Set threshold for next notification
+    # Modify "value" statement to set this threshold
+    - service: input_number.set_value
+      target: 
+        entity_id: input_number.youtube_total_views_max
+      data:
+        value: "{{ ((trigger.to_state.state) | int) }}"
+        #if you wish to add a threshold add the threshold value - 1 to the value statement
+        #Example:  to only be notified every 1,000 total views:
+        # value: "{{ ((trigger.to_state.state) | int) + 999 }}"
+# ----------------------
+# YouTube New Subscriber
+# ----------------------
+- alias: YouTube New Subscriber
+  id: 248e0594-a540-46e2-aaf9-a4bec1a1e0de
+  trigger:
+    platform: state
+    entity_id: sensor.youtube_subscribers
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: "{{ (trigger.to_state.state | int) > (trigger.from_state.state | int) }}"
+      # Optional input_boolean to disable notification
+      - condition: state
+        entity_id: input_boolean.matrix_youtube_alerts
+        state: "on"
+  action:
+    - service: persistent_notification.create
+      data:
+        title: "YouTube New Subscriber!"
+        message: "Subscriber count is now {{ states('sensor.youtube_subscribers') }}"
+
+    # Add other desired notification actions (see above for examples)
+
+    # Set threshold for next notification
+    # Modify "value" statement to set this threshold
+     - service: input_number.set_value
+      target:
+        entity_id: input_number.youtube_subscribers_max
+      data:
+        value: "{{ ((trigger.to_state.state) | int) }}"
+        #if you wish to add a threshold add the threshold value - 1 to the value statement
+        #Example:  to only be notified every 20 new subscribers:
+        # value: "{{ ((trigger.to_state.state) | int) + 19 }}"

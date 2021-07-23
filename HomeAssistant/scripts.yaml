@@ -1,0 +1,23 @@
+#========================
+# YouTube Notifications
+#========================
+# Clear Alert
+# -----------------------
+# Clears YouTube Alert
+matrix_youtube_alert_clear:
+  alias: 'Clear YouTube Alert'
+  sequence:
+    - service: light.turn_off
+      target:
+        entity_id: light.my_youtube_lamp
+#--------------------------
+# Reset Lastview to zero (use when new video posted)
+#--------------------------
+matrix_youtube_reset_lastview:
+  alias: 'Reset Last Viewed Max'
+  sequence:
+    - service: input_number.set_value
+      target:
+        entity_id: input_number.youtube_last_count_max
+      data:
+        value: 0

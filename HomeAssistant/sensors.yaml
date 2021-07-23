@@ -1,0 +1,26 @@
+# =================================
+# YouTube Channel
+# =================================
+# Last Video
+  - platform: youtube
+    channel_id: "your-channel_id"
+
+  - platform: template
+    sensors:
+      youtube_last_count:
+        friendly_name: 'Youtube Last Vid Count'
+        value_template: "{{ (state_attr('sensor.your_channel_name', 'views') | int) }}"
+
+# Aggregate Stats from YouTube API via D1 Mini
+  - platform: mqtt
+    name: 'YouTube Subscribers'
+    state_topic: "stat/youtube/subs"
+  - platform: mqtt
+    name: "YouTube Total Views"
+    state_topic: "stat/youtube/views"
+  - platform: mqtt
+    name: "YouTube Videos"
+    state_topic: "stat/youtube/videos"
+  - platform: mqtt
+    name: "YouTube API Status"
+    state_topic: "stat/youtube/status"

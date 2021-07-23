@@ -1,0 +1,16 @@
+# =========================================
+# YouTube Max View/Subscribers
+# =========================================
+# Used to 'debounce' numbers from API/Integration feeds
+youtube_last_count_max:
+  name: Max Last Viewed
+  min: 0
+  max: 9999
+youtube_subscribers_max:
+  name: Max Subscriber Count
+  min: 0
+  max: 9999
+youtube_total_views_max:
+  name: Max Total Views
+  min: 0
+  max: 9999

@@ -1,0 +1,1 @@
+## Sample Home Assistant Files
