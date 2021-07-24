@@ -1,7 +1,8 @@
 /*
  * YouTube Statistics
- * Version 0.13
- * Last updated 5/3/2021
+ * Version 1.10
+ * Last updated 7/24/2021
+ * Adds optional Home Assistant MQTT Discovery
  */
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
@@ -20,6 +21,7 @@
 bool mqttConnected = false;       //Will be enabled if defined and successful connnection made.  This var should be checked upon any MQTT actin.
 long lastReconnectAttempt = 0;    //If MQTT connected lost, attempt reconnenct
 uint16_t ota_time = ota_boot_time_window;
+uint16_t ota_time_elapsed = 0;           // Counter when OTA active
 unsigned long nextRunTime;
 long subs = 0;
 //Setup Local Access point if enabled via WIFI Mode
@@ -116,6 +118,13 @@ void setup() {
   String outTopic = mqttTopicPub + "/status";
   client.publish(outTopic.c_str(), "mqtt_connected");
 #endif
+  //------------------------------
+  // Home Assistant MQTT Discovery
+  //------------------------------
+  if (mqttConnected) {
+      setup_ha_discovery();
+  }
+  
   //-----------------------------
   // Setup OTA Updates
   //-----------------------------
@@ -165,12 +174,54 @@ void callback(char* topic, byte* payload, unsigned int length) {
 // Reconnect to broker if connection lost (usually a result of a Home Assistant/broker/server reboot)
 boolean reconnect() {
   if (client.connect(mqttClient, mqttUser, mqttPW)) {
-    // Once connected, resubscribe
+    //resubscribe
     client.subscribe(mqttTopicSub);
   }
   return client.connected();
 }
-
+//-------------------------------
+// Home Assistant MQTT Discovery
+//-------------------------------
+void setup_ha_discovery() {
+  if (ha_discovery) {
+    char buffer[256];
+    char buffer1[256];
+    char buffer2[256];
+    char buffer3[256];
+    StaticJsonDocument<200> doc;
+    //Sensors
+    //API Status
+    doc.clear();
+    doc["name"] = "YouTube API Status";
+    doc["state_topic"] = MQTT_TOPIC_PUB"/status";
+    serializeJson(doc, buffer);
+    client.publish("homeassistant/sensor/youtube_api_status/config", buffer, true);
+    //Total Views
+    doc.clear();
+    doc["name"] = "YouTube Total Views";
+    doc["state_topic"] = MQTT_TOPIC_PUB"/views";
+    serializeJson(doc, buffer1);
+    client.publish("homeassistant/sensor/youtube_total_views/config", buffer1, true);
+    //Subscribers
+    doc.clear();
+    doc["name"] = "YouTube Subscribers";
+    doc["state_topic"] = MQTT_TOPIC_PUB"/subs";
+    serializeJson(doc, buffer2);
+    client.publish("homeassistant/sensor/youtube_subscribers/config", buffer2, true);
+   //Number of Videos
+    doc.clear();
+    doc["name"] = "YouTube Videos";
+    doc["state_topic"] = MQTT_TOPIC_PUB"/videos";
+    serializeJson(doc, buffer3);
+    client.publish("homeassistant/sensor/youtube_videos/config", buffer3, true);
+  } else {
+    // publish with empty payload, which will remove HA entities if previously created
+    client.publish("homeassistant/sensor/youtube_api_status/config", "");
+    client.publish("homeassistant/sensor/tyoutube_total_views/config", "");
+    client.publish("homeassistant/sensor/youtube_subscribers/config", "");
+    client.publish("homeassistant/sensor/youtube_videos/config", "");
+  }
+}
 // ===============================================================
 //   MAIN LOOP
 // ===============================================================
@@ -198,6 +249,9 @@ void loop() {
           lastReconnectAttempt = 0;
         }
       }
+//    } else {
+//      // Client connected
+//      client.loop();
     }
     client.loop();
   }
@@ -206,7 +260,7 @@ void loop() {
   String topicViews = mqttTopicPub + "/views";
   String topicVids = mqttTopicPub + "/videos";
   String topicStatus = mqttTopicPub + "/status";
-
+  //REMAINDER OF CODE HERE:
   if (millis() > nextRunTime)  {
     if(api.getChannelStatistics(CHANNEL_ID))
     {
