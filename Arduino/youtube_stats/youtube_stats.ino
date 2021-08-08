@@ -217,7 +217,7 @@ void setup_ha_discovery() {
   } else {
     // publish with empty payload, which will remove HA entities if previously created
     client.publish("homeassistant/sensor/youtube_api_status/config", "");
-    client.publish("homeassistant/sensor/tyoutube_total_views/config", "");
+    client.publish("homeassistant/sensor/youtube_total_views/config", "");
     client.publish("homeassistant/sensor/youtube_subscribers/config", "");
     client.publish("homeassistant/sensor/youtube_videos/config", "");
   }
